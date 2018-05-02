@@ -18,7 +18,6 @@ import (
 	"encoding/binary"
 	"fmt"
 	"net"
-	"strconv"
 	"sync/atomic"
 	"time"
 
@@ -64,7 +63,7 @@ func newConnection(address core.Address, responseChannel chan *protocol.ClientMe
 		connectionManager: connectionManager,
 	}
 	connection.endpoint.Store(&protocol.Address{})
-	socket, err := net.Dial("tcp", address.Host()+":"+strconv.Itoa(address.Port()))
+	socket, err := net.Dial("tcp", address.AddressString())
 	if err != nil {
 		return nil
 	}

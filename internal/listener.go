@@ -99,7 +99,7 @@ func newListenerService(client *HazelcastClient) *listenerService {
 func (ls *listenerService) connectToAllMembersInternal() {
 	members := ls.client.ClusterService.GetMemberList()
 	for _, member := range members {
-		ls.client.ConnectionManager.getOrConnect(member.Address().(*protocol.Address), false)
+		ls.client.ConnectionManager.getOrTriggerConnect(member.Address())
 	}
 }
 
@@ -332,10 +332,8 @@ func (ls *listenerService) trySyncConnectToAllConnections() error {
 		start := time.Now()
 		successful := true
 		for _, member := range members {
-			connectionChannel, errorChannel := ls.client.ConnectionManager.getOrConnect(member.Address().(*protocol.Address), false)
-			select {
-			case <-connectionChannel:
-			case <-errorChannel:
+			_, err := ls.client.ConnectionManager.getOrConnect(member.Address(), false)
+			if err != nil {
 				successful = false
 			}
 		}

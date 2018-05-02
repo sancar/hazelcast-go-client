@@ -69,7 +69,7 @@ func (cm *connectionManager) getActiveConnection(address core.Address) *Connecti
 	}
 	cm.lock.RLock()
 	defer cm.lock.RUnlock()
-	if conn, found := cm.connections[address.Host()+":"+strconv.Itoa(address.Port())]; found {
+	if conn, found := cm.connections[address.AddressString()]; found {
 		return conn
 	}
 	return nil
@@ -104,25 +104,24 @@ func (cm *connectionManager) connectionClosed(connection *Connection, cause erro
 	}
 }
 
-func (cm *connectionManager) getOrConnect(address core.Address, asOwner bool) (chan *Connection, chan error) {
-	ch := make(chan *Connection, 1)
-	errCh := make(chan error, 1)
-	go func() {
-		//First tries to read under read lock
-		conn := cm.getConnection(address, asOwner)
-		if conn != nil {
-			ch <- conn
-			return
-		}
-		//if not available, checks and creates under write lock
-		newConn, err := cm.getOrConnectInternal(address, asOwner)
-		if err != nil {
-			errCh <- err
-		} else {
-			ch <- newConn
-		}
-	}()
-	return ch, errCh
+func (cm *connectionManager) getOrTriggerConnect(address core.Address) (*Connection, error) {
+	//First tries to read under read lock
+	conn := cm.getConnection(address, false)
+	if conn != nil {
+		return conn, nil
+	}
+	go cm.getOrConnectInternal(address, false)
+	return nil, core.NewHazelcastIOError("No available connection to address "+address.AddressString(), nil)
+}
+
+func (cm *connectionManager) getOrConnect(address core.Address, asOwner bool) (*Connection, error) {
+	//First tries to read under read lock
+	conn := cm.getConnection(address, asOwner)
+	if conn != nil {
+		return conn, nil
+	}
+	//if not available, checks and creates under write lock
+	return cm.getOrConnectInternal(address, asOwner)
 }
 
 func (cm *connectionManager) getConnection(address core.Address, asOwner bool) *Connection {
@@ -132,7 +131,7 @@ func (cm *connectionManager) getConnection(address core.Address, asOwner bool) *
 }
 
 func (cm *connectionManager) getConnectionInternal(address core.Address, asOwner bool) *Connection {
-	conn, found := cm.connections[address.Host()+":"+strconv.Itoa(address.Port())]
+	conn, found := cm.connections[address.AddressString()]
 	if !found {
 		return nil
 	}
@@ -166,7 +165,7 @@ func (cm *connectionManager) getOrConnectInternal(address core.Address, asOwner 
 	if !asOwner && cm.client.ClusterService.ownerConnectionAddress.Load().(*protocol.Address).Host() == "" {
 		return nil, core.NewHazelcastIllegalStateError("ownerConnection is not active", nil)
 	}
-	invocationService := cm.client.InvocationService
+	invocationService := cm.client.InvocationService.(*invocationServiceImpl)
 	connectionID := cm.NextConnectionID()
 	con := newConnection(address, invocationService.responseChannel, invocationService.notSentMessages, connectionID, cm)
 	if con == nil {
@@ -218,7 +217,7 @@ func (cm *connectionManager) authenticate(connection *Connection, asOwner bool) 
 		connection.serverHazelcastVersion = serverHazelcastVersion
 		connection.endpoint.Store(address)
 		connection.isOwnerConnection = asOwner
-		cm.connections[address.Host()+":"+strconv.Itoa(address.Port())] = connection
+		cm.connections[address.AddressString()] = connection
 		cm.fireConnectionAddedEvent(connection)
 		if asOwner {
 			cm.client.ClusterService.ownerConnectionAddress.Store(connection.endpoint.Load().(*protocol.Address))

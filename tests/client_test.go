@@ -29,6 +29,9 @@ import (
 	"github.com/hazelcast/hazelcast-go-client"
 	"github.com/hazelcast/hazelcast-go-client/internal"
 	"github.com/hazelcast/hazelcast-go-client/tests/assert"
+	"net/http"
+	_ "net/http/pprof"
+
 )
 
 func TestClientGetMapWhenNoMemberUp(t *testing.T) {
@@ -77,6 +80,9 @@ func TestClientRoutineLeakage(t *testing.T) {
 }
 
 func TestOpenedClientConnectionCount_WhenMultipleMembers(t *testing.T) {
+	go func() {
+		log.Println(http.ListenAndServe("localhost:6060", nil))
+	}()
 	cluster, _ = remoteController.CreateCluster("", DefaultServerConfig)
 	for i := 0; i < 5; i++ {
 		remoteController.StartMember(cluster.ID)

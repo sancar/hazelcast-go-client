@@ -24,6 +24,9 @@ type Address interface {
 
 	// Port returns the port of the member.
 	Port() int
+
+	//full representation of address as -> HOSTNAME:PORT
+	AddressString() string
 }
 
 // Member represents a member in the cluster with its address, uuid, lite member status and attributes.

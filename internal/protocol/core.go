@@ -20,6 +20,8 @@ import (
 	"reflect"
 	"time"
 
+	"strconv"
+
 	"github.com/hazelcast/hazelcast-go-client/core"
 	"github.com/hazelcast/hazelcast-go-client/internal/protocol/bufutil"
 	"github.com/hazelcast/hazelcast-go-client/internal/serialization"
@@ -46,6 +48,10 @@ func (a *Address) Port() int {
 type uuid struct {
 	msb int64
 	lsb int64
+}
+
+func (a *Address) AddressString() string {
+	return a.Host() + ":" + strconv.Itoa(a.Port())
 }
 
 type Member struct {
@@ -76,9 +82,7 @@ func (m *Member) Attributes() map[string]string {
 }
 
 func (m *Member) String() string {
-	memberInfo := fmt.Sprintf("Member [%s]:%d - %s", m.Address().Host(), m.Address().Port(),
-		m.UUID(),
-	)
+	memberInfo := fmt.Sprintf("Member %s - %s", m.address.AddressString(), m.UUID())
 	if m.IsLiteMember() {
 		memberInfo += " lite"
 	}

@@ -156,15 +156,12 @@ func (cs *clusterService) connectToCluster() error {
 }
 
 func (cs *clusterService) connectToAddress(address *protocol.Address) error {
-	connectionChannel, errChannel := cs.client.ConnectionManager.getOrConnect(address, true)
-	var con *Connection
-	select {
-	case con = <-connectionChannel:
-	case err := <-errChannel:
+	con, err := cs.client.ConnectionManager.getOrConnect(address, true)
+	if err != nil {
 		return err
 	}
 
-	err := cs.initMembershipListener(con)
+	err = cs.initMembershipListener(con)
 	if err != nil {
 		return err
 	}
