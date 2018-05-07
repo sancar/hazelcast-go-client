@@ -21,12 +21,12 @@ import (
 
 type clientMessageBuilder struct {
 	incompleteMessages map[int64]*protocol.ClientMessage
-	responseChannel    chan *protocol.ClientMessage
+	handleResponse     func(interface{})
 }
 
 func (mb *clientMessageBuilder) onMessage(msg *protocol.ClientMessage) {
 	if msg.HasFlags(bufutil.BeginEndFlag) > 0 {
-		mb.responseChannel <- msg
+		mb.handleResponse(msg)
 	} else if msg.HasFlags(bufutil.BeginFlag) > 0 {
 		mb.incompleteMessages[msg.CorrelationID()] = msg
 	} else {
@@ -37,7 +37,7 @@ func (mb *clientMessageBuilder) onMessage(msg *protocol.ClientMessage) {
 		message.Accumulate(msg)
 		if msg.HasFlags(bufutil.EndFlag) > 0 {
 			message.AddFlags(bufutil.BeginEndFlag)
-			mb.responseChannel <- message
+			mb.handleResponse(message)
 			delete(mb.incompleteMessages, msg.CorrelationID())
 		}
 	}

@@ -156,15 +156,12 @@ func (cs *clusterService) connectToCluster() error {
 }
 
 func (cs *clusterService) connectToAddress(address *protocol.Address) error {
-	connectionChannel, errChannel := cs.client.ConnectionManager.getOrConnect(address, true)
-	var con *Connection
-	select {
-	case con = <-connectionChannel:
-	case err := <-errChannel:
+	connection, err := cs.client.ConnectionManager.getOrConnect(address, true)
+	if err != nil {
 		return err
 	}
 
-	err := cs.initMembershipListener(con)
+	err = cs.initMembershipListener(connection)
 	if err != nil {
 		return err
 	}
@@ -363,10 +360,19 @@ func (cs *clusterService) GetMemberByUUID(uuid string) core.Member {
 	return nil
 }
 
+func (cs *clusterService) getOwnerConnectionAddress() *protocol.Address {
+	address, ok := cs.ownerConnectionAddress.Load().(*protocol.Address)
+	if ok {
+		return address
+	}
+	return nil
+}
+
 func (cs *clusterService) onConnectionClosed(connection *Connection, cause error) {
-	ownerConnectionAddress := cs.ownerConnectionAddress.Load().(*protocol.Address)
-	if connection.endpoint.Load().(*protocol.Address).Host() != "" && ownerConnectionAddress.Host() != "" &&
-		*connection.endpoint.Load().(*protocol.Address) == *ownerConnectionAddress && cs.client.LifecycleService.isLive.Load().(bool) {
+	address, ok := connection.endpoint.Load().(*protocol.Address)
+	ownerConnectionAddress := cs.getOwnerConnectionAddress()
+	if ok && ownerConnectionAddress != nil &&
+		*address == *ownerConnectionAddress && cs.client.LifecycleService.isLive.Load().(bool) {
 		cs.client.LifecycleService.fireLifecycleEvent(LifecycleStateDisconnected)
 		cs.ownerConnectionAddress.Store(&protocol.Address{})
 		cs.reconnectChan <- struct{}{}

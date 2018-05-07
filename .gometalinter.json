@@ -21,7 +21,8 @@
     ".*DataOffset should have comment.*",
     ".*TypePortable should have comment.*",
     ".*LifecycleStateStarting should have comment.*",
-    ".*includedValue is unused.*"
+    ".*includedValue is unused.*",
+    "address can be fmt.Stringer \\(interfacer\\)"
   ],
   "EnableGC": true,
   "WarnUnmatchedDirective": true,
