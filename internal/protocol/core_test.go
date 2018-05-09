@@ -17,6 +17,8 @@ package protocol
 import (
 	"testing"
 
+	"reflect"
+
 	"github.com/hazelcast/hazelcast-go-client/internal/serialization"
 )
 
@@ -24,13 +26,13 @@ func TestMember_Equal(t *testing.T) {
 	member1 := NewMember(*NewAddressWithParameters("localhost", 5701), "test", false, nil)
 	member2 := NewMember(*NewAddressWithParameters("localhost", 5701), "test1", false, nil)
 
-	if ok := member1.Equal(*member2); ok {
+	if ok := reflect.DeepEqual(member1, member2); ok {
 		t.Fatal("memberEqual test failed")
 	}
 	member2.isLiteMember = true
 	member2.uuid = "test"
 
-	if ok := member1.Equal(*member2); ok {
+	if ok := reflect.DeepEqual(member1, member2); ok {
 		t.Fatal("memberEqual test failed")
 	}
 
@@ -39,7 +41,7 @@ func TestMember_Equal(t *testing.T) {
 	testMap["test"] = "test"
 	member2.attributes = testMap
 
-	if ok := member1.Equal(*member2); ok {
+	if ok := reflect.DeepEqual(member1, member2); ok {
 		t.Fatal("memberEqual test failed")
 	}
 

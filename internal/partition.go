@@ -19,6 +19,7 @@ import (
 	"sync/atomic"
 	"time"
 
+	"github.com/hazelcast/hazelcast-go-client/core"
 	"github.com/hazelcast/hazelcast-go-client/internal/murmur"
 	"github.com/hazelcast/hazelcast-go-client/internal/protocol"
 	"github.com/hazelcast/hazelcast-go-client/internal/serialization"
@@ -57,12 +58,12 @@ func (ps *partitionService) start() {
 }
 
 func (ps *partitionService) getPartitionCount() int32 {
-	partitions := ps.mp.Load().(map[int32]*protocol.Address)
+	partitions := ps.mp.Load().(map[int32]core.Address)
 	return int32(len(partitions))
 }
 
-func (ps *partitionService) partitionOwner(partitionID int32) (*protocol.Address, bool) {
-	partitions := ps.mp.Load().(map[int32]*protocol.Address)
+func (ps *partitionService) partitionOwner(partitionID int32) (core.Address, bool) {
+	partitions := ps.mp.Load().(map[int32]core.Address)
 	address, ok := partitions[partitionID]
 	return address, ok
 }
@@ -100,9 +101,9 @@ func (ps *partitionService) doRefresh() {
 
 func (ps *partitionService) processPartitionResponse(result *protocol.ClientMessage) {
 	partitions /*partitionStateVersion*/, _ := protocol.ClientGetPartitionsDecodeResponse(result)()
-	newPartitions := make(map[int32]*protocol.Address, len(partitions))
+	newPartitions := make(map[int32]core.Address, len(partitions))
 	for _, partitionList := range partitions {
-		addr := partitionList.Key().(*protocol.Address)
+		addr := partitionList.Key().(core.Address)
 		for _, partition := range partitionList.Value().([]int32) {
 			newPartitions[partition] = addr
 		}

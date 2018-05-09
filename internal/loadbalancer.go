@@ -18,7 +18,7 @@ import (
 	"math/rand"
 	"time"
 
-	"github.com/hazelcast/hazelcast-go-client/internal/protocol"
+	"github.com/hazelcast/hazelcast-go-client/core"
 )
 
 type randomLoadBalancer struct {
@@ -30,13 +30,13 @@ func newRandomLoadBalancer(clusterService *clusterService) *randomLoadBalancer {
 	return &randomLoadBalancer{clusterService: clusterService}
 }
 
-func (b *randomLoadBalancer) nextAddress() *protocol.Address {
+func (b *randomLoadBalancer) nextAddress() core.Address {
 	membersList := b.clusterService.GetMemberList()
 	size := len(membersList)
 	if size > 0 {
 		randomIndex := rand.Intn(size)
 		member := membersList[randomIndex]
-		return member.Address().(*protocol.Address)
+		return member.Address()
 	}
 	return nil
 }

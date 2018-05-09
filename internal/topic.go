@@ -66,7 +66,7 @@ func (tp *topicProxy) createEventHandler(messageListener core.TopicMessageListen
 		protocol.TopicAddMessageListenerHandle(message, func(itemData *serialization.Data, publishTime int64, uuid *string) {
 			member := tp.client.ClusterService.GetMemberByUUID(*uuid)
 			item, _ := tp.toObject(itemData)
-			itemEvent := protocol.NewTopicMessage(item, publishTime, member.(*protocol.Member))
+			itemEvent := protocol.NewTopicMessage(item, publishTime, member)
 			messageListener.OnMessage(itemEvent)
 		})
 	}

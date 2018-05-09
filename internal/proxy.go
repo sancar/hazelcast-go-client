@@ -142,7 +142,7 @@ func (p *proxy) invokeOnPartition(request *protocol.ClientMessage, partitionID i
 	return p.client.InvocationService.invokeOnPartitionOwner(request, partitionID).Result()
 }
 
-func (p *proxy) invokeOnAddress(request *protocol.ClientMessage, address *protocol.Address) (*protocol.ClientMessage, error) {
+func (p *proxy) invokeOnAddress(request *protocol.ClientMessage, address core.Address) (*protocol.ClientMessage, error) {
 	return p.client.InvocationService.invokeOnTarget(request, address).Result()
 }
 
@@ -224,7 +224,7 @@ func (p *proxy) createOnItemEvent(listener interface{}) func(itemData *serializa
 		var item interface{}
 		item, _ = p.toObject(itemData)
 		member := p.client.ClusterService.GetMemberByUUID(*uuid)
-		itemEvent := protocol.NewItemEvent(p.name, item, eventType, member.(*protocol.Member))
+		itemEvent := protocol.NewItemEvent(p.name, item, eventType, member)
 		if eventType == bufutil.ItemAdded {
 			if _, ok := listener.(core.ItemAddedListener); ok {
 				listener.(core.ItemAddedListener).ItemAdded(itemEvent)

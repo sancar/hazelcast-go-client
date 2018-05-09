@@ -68,10 +68,10 @@ func newConnection(address core.Address, handleResponse func(interface{}),
 	}
 	connection.socket = socket
 	connection.lastRead.Store(time.Now())
-	connection.lastWrite.Store(time.Time{})             //initialization
-	connection.lastHeartbeatReceived.Store(time.Time{}) //initialization
+	connection.lastWrite.Store(time.Time{})              //initialization
+	connection.lastHeartbeatReceived.Store(time.Time{})  //initialization
 	connection.lastHeartbeatRequested.Store(time.Time{}) //initialization
-	connection.closedTime.Store(time.Time{})            //initialization
+	connection.closedTime.Store(time.Time{})             //initialization
 	socket.Write([]byte("CB2"))
 	go connection.writePool()
 	go connection.read()

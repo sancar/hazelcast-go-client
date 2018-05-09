@@ -17,6 +17,8 @@ package protocol
 import (
 	"testing"
 
+	"reflect"
+
 	"github.com/hazelcast/hazelcast-go-client/internal/protocol/bufutil"
 	"github.com/hazelcast/hazelcast-go-client/internal/serialization"
 )
@@ -58,14 +60,14 @@ func TestMemberCodecEncodeDecode(t *testing.T) {
 	attributes := make(map[string]string)
 	attributes["key1"] = "value1"
 	attributes["key2"] = "value2"
-	member := Member{address, uuid, isLiteMember, attributes}
-	msg := NewClientMessage(nil, MemberCalculateSize(&member))
-	MemberCodecEncode(msg, &member)
+	member := &Member{address, uuid, isLiteMember, attributes}
+	msg := NewClientMessage(nil, MemberCalculateSize(member))
+	MemberCodecEncode(msg, member)
 	//Skip the header.
 	for i := 0; i < len(READ_HEADER); i++ {
 		msg.ReadUint8()
 	}
-	if result := MemberCodecDecode(msg); !result.Equal(member) {
+	if result := MemberCodecDecode(msg); !reflect.DeepEqual(result, member) {
 		t.Error("MemberCodecDecode returned a wrong member")
 	}
 }

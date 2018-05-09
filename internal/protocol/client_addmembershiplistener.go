@@ -15,6 +15,7 @@
 package protocol
 
 import (
+	"github.com/hazelcast/hazelcast-go-client/core"
 	"github.com/hazelcast/hazelcast-go-client/internal/protocol/bufutil"
 )
 
@@ -43,19 +44,19 @@ func ClientAddMembershipListenerDecodeResponse(clientMessage *ClientMessage) fun
 	}
 }
 
-type ClientAddMembershipListenerHandleEventMemberFunc func(*Member, int32)
-type ClientAddMembershipListenerHandleEventMemberListFunc func([]*Member)
+type ClientAddMembershipListenerHandleEventMemberFunc func(core.Member, int32)
+type ClientAddMembershipListenerHandleEventMemberListFunc func([]core.Member)
 type ClientAddMembershipListenerHandleEventMemberAttributeChangeFunc func(*string, *string, int32, *string)
 
-func ClientAddMembershipListenerEventMemberDecode(clientMessage *ClientMessage) (member *Member, eventType int32) {
+func ClientAddMembershipListenerEventMemberDecode(clientMessage *ClientMessage) (member core.Member, eventType int32) {
 	member = MemberCodecDecode(clientMessage)
 	eventType = clientMessage.ReadInt32()
 	return
 }
 
-func ClientAddMembershipListenerEventMemberListDecode(clientMessage *ClientMessage) (members []*Member) {
+func ClientAddMembershipListenerEventMemberListDecode(clientMessage *ClientMessage) (members []core.Member) {
 	membersSize := clientMessage.ReadInt32()
-	members = make([]*Member, membersSize)
+	members = make([]core.Member, membersSize)
 	for membersIndex := 0; membersIndex < int(membersSize); membersIndex++ {
 		membersItem := MemberCodecDecode(clientMessage)
 		members[membersIndex] = membersItem

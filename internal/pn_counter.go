@@ -156,7 +156,7 @@ func (pn *pnCounterProxy) invokeGetInternal(excludedAddresses map[core.Address]s
 	}
 	request := protocol.PNCounterGetEncodeRequest(pn.name,
 		(*vectorClock)(atomic.LoadPointer(&pn.observedClock)).EntrySet(), target.(*protocol.Address))
-	response, lastError = pn.invokeOnAddress(request, target.(*protocol.Address))
+	response, lastError = pn.invokeOnAddress(request, target)
 	if lastError != nil {
 		log.Printf("error occurred while invoking operation on target %v, choosing different target", target)
 		excludedAddresses[target] = struct{}{}
@@ -184,7 +184,7 @@ func (pn *pnCounterProxy) invokeAddInternal(delta int64, getBeforeUpdate bool,
 	}
 	request := protocol.PNCounterAddEncodeRequest(pn.name, delta, getBeforeUpdate,
 		(*vectorClock)(atomic.LoadPointer(&pn.observedClock)).EntrySet(), target.(*protocol.Address))
-	response, lastError = pn.invokeOnAddress(request, target.(*protocol.Address))
+	response, lastError = pn.invokeOnAddress(request, target)
 	if lastError != nil {
 		log.Printf("unable to provide session guarantees when sending operations to %v, choosing different target", target)
 		excludedAddresses[target] = struct{}{}

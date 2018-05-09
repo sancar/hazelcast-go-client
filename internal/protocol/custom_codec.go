@@ -14,6 +14,8 @@
 
 package protocol
 
+import "github.com/hazelcast/hazelcast-go-client/core"
+
 /*
 Address Codec
 */
@@ -42,7 +44,7 @@ func DistributedObjectInfoCodecDecode(msg *ClientMessage) *DistributedObjectInfo
 Member Codec
 */
 
-func MemberCodecDecode(msg *ClientMessage) *Member {
+func MemberCodecDecode(msg *ClientMessage) core.Member {
 	address := AddressCodecDecode(msg)
 	uuid := msg.ReadString()
 	liteMember := msg.ReadBool()

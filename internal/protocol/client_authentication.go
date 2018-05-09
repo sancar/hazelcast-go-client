@@ -15,6 +15,7 @@
 package protocol
 
 import (
+	"github.com/hazelcast/hazelcast-go-client/core"
 	"github.com/hazelcast/hazelcast-go-client/internal/protocol/bufutil"
 )
 
@@ -61,9 +62,9 @@ func ClientAuthenticationEncodeRequest(username *string, password *string, uuid 
 	return clientMessage
 }
 
-func ClientAuthenticationDecodeResponse(clientMessage *ClientMessage) func() (status uint8, address *Address, uuid *string, ownerUUID *string, serializationVersion uint8, serverHazelcastVersion *string, clientUnregisteredMembers []*Member) {
+func ClientAuthenticationDecodeResponse(clientMessage *ClientMessage) func() (status uint8, address *Address, uuid *string, ownerUUID *string, serializationVersion uint8, serverHazelcastVersion *string, clientUnregisteredMembers []core.Member) {
 	// Decode response from client message
-	return func() (status uint8, address *Address, uuid *string, ownerUUID *string, serializationVersion uint8, serverHazelcastVersion *string, clientUnregisteredMembers []*Member) {
+	return func() (status uint8, address *Address, uuid *string, ownerUUID *string, serializationVersion uint8, serverHazelcastVersion *string, clientUnregisteredMembers []core.Member) {
 		status = clientMessage.ReadUint8()
 
 		if !clientMessage.ReadBool() {
@@ -85,7 +86,7 @@ func ClientAuthenticationDecodeResponse(clientMessage *ClientMessage) func() (st
 
 		if !clientMessage.ReadBool() {
 			clientUnregisteredMembersSize := clientMessage.ReadInt32()
-			clientUnregisteredMembers = make([]*Member, clientUnregisteredMembersSize)
+			clientUnregisteredMembers = make([]core.Member, clientUnregisteredMembersSize)
 			for clientUnregisteredMembersIndex := 0; clientUnregisteredMembersIndex < int(clientUnregisteredMembersSize); clientUnregisteredMembersIndex++ {
 				clientUnregisteredMembersItem := MemberCodecDecode(clientMessage)
 				clientUnregisteredMembers[clientUnregisteredMembersIndex] = clientUnregisteredMembersItem

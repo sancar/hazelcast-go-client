@@ -17,7 +17,6 @@ package protocol
 import (
 	"bytes"
 	"fmt"
-	"reflect"
 	"strconv"
 	"time"
 
@@ -102,22 +101,6 @@ func (p *Pair) Key() interface{} {
 
 func (p *Pair) Value() interface{} {
 	return p.value
-}
-
-func (m *Member) Equal(member2 Member) bool {
-	if m.address != member2.address {
-		return false
-	}
-	if m.uuid != member2.uuid {
-		return false
-	}
-	if m.isLiteMember != member2.isLiteMember {
-		return false
-	}
-	if !reflect.DeepEqual(m.attributes, member2.attributes) {
-		return false
-	}
-	return true
 }
 
 type DistributedObjectInfo struct {
@@ -400,7 +383,7 @@ type MapEvent struct {
 	numberOfAffectedEntries int32
 }
 
-func NewItemEvent(name *string, item interface{}, eventType int32, member *Member) *ItemEvent {
+func NewItemEvent(name *string, item interface{}, eventType int32, member core.Member) *ItemEvent {
 	return &ItemEvent{
 		name:      *name,
 		item:      item,
@@ -413,7 +396,7 @@ type ItemEvent struct {
 	name      string
 	item      interface{}
 	eventType int32
-	member    *Member
+	member    core.Member
 }
 
 func (e *ItemEvent) Name() string {
@@ -523,10 +506,10 @@ func GetEntryListenerFlags(listener interface{}) int32 {
 type TopicMessage struct {
 	messageObject    interface{}
 	publishTime      time.Time
-	publishingMember *Member
+	publishingMember core.Member
 }
 
-func NewTopicMessage(messageObject interface{}, publishTime int64, publishingMember *Member) *TopicMessage {
+func NewTopicMessage(messageObject interface{}, publishTime int64, publishingMember core.Member) *TopicMessage {
 	return &TopicMessage{
 		messageObject:    messageObject,
 		publishTime:      timeutil.ConvertMillisToUnixTime(publishTime),

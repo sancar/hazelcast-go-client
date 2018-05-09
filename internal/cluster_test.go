@@ -17,6 +17,10 @@ package internal
 import (
 	"testing"
 
+	"fmt"
+	"reflect"
+
+	"github.com/hazelcast/hazelcast-go-client/core"
 	"github.com/hazelcast/hazelcast-go-client/internal/IPutil"
 	"github.com/hazelcast/hazelcast-go-client/internal/protocol"
 )
@@ -29,7 +33,7 @@ func Test_getPossibleAddresses(t *testing.T) {
 		"132.63.211.12:5010",
 		"12.63.31.12:501",
 	}
-	members := []*protocol.Member{
+	members := []core.Member{
 		protocol.NewMember(*protocol.NewAddressWithParameters("132.63.211.12", 5012), "", false, nil),
 		protocol.NewMember(*protocol.NewAddressWithParameters("55.63.211.112", 5011), "", false, nil),
 	}
@@ -39,7 +43,7 @@ func Test_getPossibleAddresses(t *testing.T) {
 	}
 	addressesInMap := make(map[protocol.Address]struct{}, len(addresses))
 	for _, address := range addresses {
-		addressesInMap[address] = struct{}{}
+		addressesInMap[*address.(*protocol.Address)] = struct{}{}
 	}
 	for _, address := range configAddresses {
 		ip, port := IPutil.GetIPAndPort(address)
@@ -55,16 +59,45 @@ func Test_getPossibleAddresses(t *testing.T) {
 	}
 }
 
-func Test_getPossibleAddressesWithEmptyParamters(t *testing.T) {
+func Test_getPossibleAddressesWithEmptyParameters(t *testing.T) {
 	addresses := getPossibleAddresses(nil, nil)
 	if len(addresses) != 1 {
 		t.Fatal("getPossibleAddresses failed")
 	}
 	defaultAddress := protocol.NewAddressWithParameters(defaultAddress, defaultPort)
 	for _, address := range addresses {
-		if address != *defaultAddress {
+		if !reflect.DeepEqual(address, defaultAddress) {
 			t.Fatal("getPossibleAddresses failed")
 		}
 	}
 
+}
+
+type A struct {
+	a int
+}
+
+func (a *A) String() string {
+	return fmt.Sprintf("%d", a.a)
+}
+func TestSancar(t *testing.T) {
+	stringers := make([]fmt.Stringer, 10)
+
+	for i := 0; i < 10; i++ {
+		stringers[i] = &A{i * 10}
+	}
+
+	cp := make([]fmt.Stringer, 10)
+
+	copy(cp, stringers)
+
+	stringers[0] = &A{200}
+	stringers[1].(*A).a = 100
+	for _, v := range cp {
+		fmt.Println(v)
+	}
+	fmt.Println()
+	for _, v := range stringers {
+		fmt.Println(v)
+	}
 }
